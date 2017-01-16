@@ -867,6 +867,21 @@ void Send_Data_MCU2(void)
 	}
 	
 }
+u8 Test[60]={'G','P','S','A'};
+void Receive_Data_MCU2( const u8 *StrHeadAdd)
+{
+	 const u8 *P = StrHeadAdd;
+	
+	if(USART.Receive()== False)
+	{
+		if(P[0] == 'G' && P[1] == 'P' && P[2] == 'S')
+		{
+			RTK_OPS.Read((u8*)&Test[3]);
+		}
+	}
+	USART.Free_RXBUF();	
+}
+
 
 void Data_Analysis_MCU2(void)
 {
@@ -928,11 +943,12 @@ void Data_Analysis_MCU2(void)
 
 BOOL Communicate(void)
 {
-	Send_Data_MCU2();
-#ifdef DEBUG
-	Send_Data_PC();
-	Data_Analysis_PC();
-#endif	
-	Data_Analysis_MCU2();
+//	Send_Data_MCU2();
+//#ifdef DEBUG
+//	Send_Data_PC();
+//	Data_Analysis_PC();
+//#endif	
+//	Data_Analysis_MCU2();
+	Receive_Data_MCU2(USART.Data->RX_BUF);
 	return True;
 }

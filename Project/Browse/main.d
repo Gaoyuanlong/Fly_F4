@@ -69,6 +69,7 @@
 .\browse\main.o: ..\User\Code_C\inc\Ultra.h
 .\browse\main.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\main.o: ..\User\Code_C\inc\Altitude.h
+.\browse\main.o: ..\User\Code_C\inc\RTK.h
 .\browse\main.o: ..\User\Code_C\inc\Scheduler.h
 .\browse\main.o: ..\User\Code_C\inc\Board.h
 .\browse\main.o: ..\User\Code_C\inc\SysState.h

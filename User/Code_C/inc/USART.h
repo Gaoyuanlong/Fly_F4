@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "LED.h"
 
-#define BUF_SIZE 32
+#define BUF_SIZE 64
 
 struct USART_Data_
 {

@@ -70,6 +70,7 @@
 .\browse\sysstate.o: ..\User\Code_C\inc\Ultra.h
 .\browse\sysstate.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\sysstate.o: ..\User\Code_C\inc\Altitude.h
+.\browse\sysstate.o: ..\User\Code_C\inc\RTK.h
 .\browse\sysstate.o: ..\User\Code_C\inc\Scheduler.h
 .\browse\sysstate.o: ..\User\Code_C\inc\Board.h
 .\browse\sysstate.o: ..\User\Code_C\inc\SysState.h

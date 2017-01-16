@@ -15,6 +15,7 @@
 #include "SBUS.h"
 #include "Altitude.h"
 #include "Ultra.h"
+#include "RTK.h"
 
 #define UNLOCK  	0X0001
 #define LOST    	0X0002

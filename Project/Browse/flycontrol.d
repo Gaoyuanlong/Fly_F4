@@ -65,6 +65,7 @@
 .\browse\flycontrol.o: ..\User\Code_C\inc\SBUS.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Altitude.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Ultra.h
+.\browse\flycontrol.o: ..\User\Code_C\inc\RTK.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Position.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\MS5611_SPI.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Buzzer.h

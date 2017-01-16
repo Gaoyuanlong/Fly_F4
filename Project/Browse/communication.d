@@ -67,3 +67,4 @@
 .\browse\communication.o: ..\User\Code_C\inc\Ultra.h
 .\browse\communication.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\communication.o: ..\User\Code_C\inc\Altitude.h
+.\browse\communication.o: ..\User\Code_C\inc\RTK.h

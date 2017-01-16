@@ -67,3 +67,4 @@
 .\browse\attitude.o: ..\User\Code_C\inc\Ultra.h
 .\browse\attitude.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\attitude.o: ..\User\Code_C\inc\Altitude.h
+.\browse\attitude.o: ..\User\Code_C\inc\RTK.h

@@ -67,4 +67,5 @@
 .\browse\posotion.o: ..\User\Code_C\inc\Position.h
 .\browse\posotion.o: ..\User\Code_C\inc\Altitude.h
 .\browse\posotion.o: ..\User\Code_C\inc\Ultra.h
+.\browse\posotion.o: ..\User\Code_C\inc\RTK.h
 .\browse\posotion.o: ..\User\Code_C\inc\Buzzer.h

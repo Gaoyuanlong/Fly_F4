@@ -70,6 +70,7 @@
 .\browse\scheduler.o: ..\User\Code_C\inc\Ultra.h
 .\browse\scheduler.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\scheduler.o: ..\User\Code_C\inc\Altitude.h
+.\browse\scheduler.o: ..\User\Code_C\inc\RTK.h
 .\browse\scheduler.o: ..\User\Code_C\inc\Scheduler.h
 .\browse\scheduler.o: ..\User\Code_C\inc\SysState.h
 .\browse\scheduler.o: ..\User\Code_C\inc\Board.h

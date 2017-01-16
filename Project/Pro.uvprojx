@@ -548,6 +548,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\Code_C\src\MS5611_SPI.c</FilePath>
             </File>
+            <File>
+              <FileName>RTK.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Code_C\src\RTK.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
