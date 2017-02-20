@@ -131,7 +131,6 @@ void USART3_IRQHandler(void)
 
 			USART_ITConfig(USART3, USART_IT_TXE, DISABLE);
 		}
-
 	}
 
 	if(USART_GetITStatus(USART3,USART_IT_RXNE) == SET)

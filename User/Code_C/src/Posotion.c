@@ -121,8 +121,8 @@ void Position_Updata(u16 Time)
 	Store_POS_MS5611 = MS5611_Fused_Pos;
 
 
-	User_Data.Data1 = Pos_Data.POS_Z * 100.0f;
-	User_Data.Data2 = Pos_Data.SPE_Z * 100.0f;
+//	User_Data.Data1 = Pos_Data.POS_Z * 100.0f;
+//	User_Data.Data2 = Pos_Data.SPE_Z * 100.0f;
 
 }
 

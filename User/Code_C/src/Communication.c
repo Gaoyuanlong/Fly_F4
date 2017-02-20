@@ -867,7 +867,6 @@ void Send_Data_MCU2(void)
 	}
 	
 }
-u8 Test[60]={'G','P','S','A'};
 void Receive_Data_MCU2( const u8 *StrHeadAdd)
 {
 	 const u8 *P = StrHeadAdd;
@@ -876,10 +875,17 @@ void Receive_Data_MCU2( const u8 *StrHeadAdd)
 	{
 		if(P[0] == 'G' && P[1] == 'P' && P[2] == 'S')
 		{
-			RTK_OPS.Read((u8*)&Test[3]);
+			RTK_OPS.Read((u8*)&P[3]);
 		}
 	}
 	USART.Free_RXBUF();	
+	
+	User_Data.Data1 = RTK_GPS.Quality * 100.0f;
+	User_Data.Data2 = RTK_GPS.Lat_M * 100.0f;
+	User_Data.Data3 = RTK_GPS.Lon_M * 100.0f;
+	User_Data.Data4 = RTK_GPS.Alt_M * 100.0f;
+	User_Data.Data5 = RTK_GPS.TrackAngle * 100.0f;
+	User_Data.Data6 = RTK_GPS.Speed_M * 100.0f;
 }
 
 
@@ -944,10 +950,10 @@ void Data_Analysis_MCU2(void)
 BOOL Communicate(void)
 {
 //	Send_Data_MCU2();
-//#ifdef DEBUG
-//	Send_Data_PC();
-//	Data_Analysis_PC();
-//#endif	
+#ifdef DEBUG
+	Send_Data_PC();
+	//Data_Analysis_PC();
+#endif	
 //	Data_Analysis_MCU2();
 	Receive_Data_MCU2(USART.Data->RX_BUF);
 	return True;
