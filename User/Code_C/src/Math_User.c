@@ -2,7 +2,7 @@
 
 double Constrain(double AimN, double Limit_Up,double Limit_Down);
 int Dead_Zone(int AimN,int Limit);
-Vector Body_To_Earth(Vector Body,float Pitch,float Roll);
+Vector Body_To_Earth(Vector Body,float Pitch,float Roll,float Yaw);
 
 struct Math_ Math =
 {
@@ -33,23 +33,29 @@ int Dead_Zone(int AimN,int Limit)
 	            Pitch ： 绕坐标系Y轴运动		Vector Angle.y
 	            Roll  ： 绕坐标系X轴运动		Vector Angle.x
 							Yaw   ： 绕坐标系Z轴运动   Vector Angle.z
-	参考坐标系：北东天坐标系  
+	参考坐标系：    
 
 */
 
-Vector Body_To_Earth(Vector Body,float Pitch,float Roll)
+Vector Body_To_Earth(Vector Body,float Pitch,float Roll,float Yaw)
 {
 	Vector Earth;
 	Pitch *= DEG_TO_RAD;
 	Roll *= DEG_TO_RAD;
 	float COS_Phi   = arm_cos_f32(Roll);
 	float COS_Theta = arm_cos_f32(Pitch);
+	float COS_Psi = arm_cos_f32(Yaw);
 	float SIN_Phi   = arm_sin_f32(Roll);
 	float SIN_Theta = arm_sin_f32(Pitch);
+	float SIN_Psi = arm_sin_f32(Yaw);
 	
-	Earth.x =  COS_Theta * Body.x + SIN_Phi * SIN_Theta * Body.y + COS_Phi * SIN_Theta * Body.z;
-	Earth.y =                                 COS_Phi   * Body.y -             SIN_Phi * Body.z;
-	Earth.z = -SIN_Theta * Body.x + SIN_Phi * COS_Theta * Body.y + COS_Phi * COS_Theta * Body.z;
+	Earth.x =  COS_Theta * COS_Psi * Body.x + (SIN_Phi * SIN_Theta * COS_Psi - COS_Phi * SIN_Psi) * Body.y + (COS_Phi * SIN_Theta * COS_Phi + SIN_Phi * SIN_Psi) * Body.z;
+	Earth.y =  COS_Theta * SIN_Psi * Body.x + (SIN_Phi * SIN_Theta * SIN_Psi + COS_Phi * COS_Psi) * Body.y + (COS_Phi * SIN_Theta * SIN_Psi - SIN_Phi * COS_Psi) * Body.z;
+	Earth.z = -SIN_Theta * Body.x 					+  SIN_Phi * COS_Theta * Body.y  + COS_Phi * COS_Theta * Body.z;
+	
+//	Earth.x =  COS_Theta * Body.x + SIN_Phi * SIN_Theta * Body.y + COS_Phi * SIN_Theta * Body.z;
+//	Earth.y =                                 COS_Phi   * Body.y -             SIN_Phi * Body.z;
+//	Earth.z = -SIN_Theta * Body.x + SIN_Phi * COS_Theta * Body.y + COS_Phi * COS_Theta * Body.z;
 	return Earth;
 };
 

@@ -41,10 +41,13 @@ class Filter_MidValue
 		};
 		Vector MidValue(Vector Input);
 		float MidValue(float Input);
+		double MidValue(double Input);
 	private:
 		float Bubble(float Input[3]);
-		Vector Data[3];
+		double Bubble(double Input[3]);
+		Vector Data[3]; 
 		float Data1[3];
+		double Data2[3];
 		int Cnt;
 };
 

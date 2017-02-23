@@ -104,6 +104,50 @@ float Filter_MidValue::Bubble(float Input[3])
 	
 	return Input[1];
 }
+
+double Filter_MidValue::Bubble(double Input[3])
+{
+	
+	if(Input[0] < Input[1])
+	{
+		double buf = Input[0];
+		Input[0] = Input[1];
+		Input[1] = buf;
+		
+		if(Input[1] < Input[2])
+		{
+			double buf = Input[1];
+			Input[1] = Input[2];
+			Input[2] = buf;
+			
+			if(Input[0] < Input[1])
+			{
+				double buf = Input[0];
+				Input[0] = Input[1];
+				Input[1] = buf;
+			}
+		}
+	}
+	else
+	{
+		if(Input[1] < Input[2])
+		{
+			double buf = Input[1];
+			Input[1] = Input[2];
+			Input[2] = buf;
+			
+			if(Input[0] < Input[1])
+			{
+				double buf = Input[0];
+				Input[0] = Input[1];
+				Input[1] = buf;
+			}
+		}
+	}
+	
+	return Input[1];
+}
+
 /*
 	ÖÐÖµÂË²¨
 */
@@ -155,6 +199,23 @@ float Filter_MidValue::MidValue(float Input)
 	return Output;
 }
 
+double Filter_MidValue::MidValue(double Input)
+{
+	double Output;
+	double Buf[3];
+	
+	Data2[Cnt++] = Input;
+	
+	if(Cnt == 3) Cnt = 0;
+	
+	Buf[0] = Data2[0];
+	Buf[1] = Data2[1];
+	Buf[2] = Data2[2];
+	
+	Output = Bubble(Buf);
+	
+	return Output;
+}
 
 float Filter_Fir::FirFilter(float Input)
 {

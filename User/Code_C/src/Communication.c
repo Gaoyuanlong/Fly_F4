@@ -871,21 +871,21 @@ void Receive_Data_MCU2( const u8 *StrHeadAdd)
 {
 	 const u8 *P = StrHeadAdd;
 	
-	if(USART.Receive()== False)
+	if(USART.Receive()== True)
 	{
 		if(P[0] == 'G' && P[1] == 'P' && P[2] == 'S')
 		{
 			RTK_OPS.Read((u8*)&P[3]);
 		}
+		USART.Free_RXBUF();	
 	}
-	USART.Free_RXBUF();	
 	
-	User_Data.Data1 = RTK_GPS.Quality * 100.0f;
-	User_Data.Data2 = RTK_GPS.Lat_M * 100.0f;
-	User_Data.Data3 = RTK_GPS.Lon_M * 100.0f;
-	User_Data.Data4 = RTK_GPS.Alt_M * 100.0f;
-	User_Data.Data5 = RTK_GPS.TrackAngle * 100.0f;
-	User_Data.Data6 = RTK_GPS.Speed_M * 100.0f;
+	User_Data.Data1 = RTK_GPS.Quality;
+	User_Data.Data2 = RTK_GPS.Lat_M;
+	User_Data.Data3 = RTK_GPS.Lon_M ;
+	User_Data.Data4 = RTK_GPS.Alt_M;
+	User_Data.Data5 = RTK_GPS.TrackAngle;
+	User_Data.Data6 = RTK_GPS.Speed_M;
 }
 
 

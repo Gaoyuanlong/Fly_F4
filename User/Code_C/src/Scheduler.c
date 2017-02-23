@@ -43,7 +43,5 @@ void Loop_50Hz(u16 Time)
 	
 	Power.Updata();	
 	MS5611_SPI.Updata();
-	GPS.Updata();
-
-	
+	//GPS.Updata();
 }
