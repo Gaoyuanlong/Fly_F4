@@ -34,19 +34,19 @@ void Buzzer_On(u16 Time)
 	static u32 Time1 = 0;
 	u32 Time_Now;
 	
-//	Time_Now = SystemTime.Now_MS();
-//	
-//	if(Time == 0)
-//	{
-//		GPIO_SetBits(Buzzer_GPIOX,Buzzer_PORT);
-//		return;
-//	}
-//	
-//	if(Time_Now > Time1)
-//	{
-//		Buzzer_GPIOX->ODR ^= Buzzer_PORT;
-//		Time1 = Time_Now + Time;
-//	}
+	Time_Now = SystemTime.Now_MS();
+	
+	if(Time == 0)
+	{
+		GPIO_SetBits(Buzzer_GPIOX,Buzzer_PORT);
+		return;
+	}
+	
+	if(Time_Now > Time1)
+	{
+		Buzzer_GPIOX->ODR ^= Buzzer_PORT;
+		Time1 = Time_Now + Time;
+	}
 }
 
 void Buzzer_Off(void)

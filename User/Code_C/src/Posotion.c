@@ -194,8 +194,8 @@ void Updata_Pos_Quaternion(Vector RTK_GPS_Speed,Vector ACC,double DltaT)
 	Pos_Data.POS_Z = Degrees(atan2f(2.0f*(Pos_Q.q2*Pos_Q.q3 - Pos_Q.q1*Pos_Q.q4),2.0f*(Pos_Q.q1*Pos_Q.q1 + Pos_Q.q2*Pos_Q.q2) - 1));
 	
 	Pos_Data.SPE_X = (Pos_Data.POS_X - Pos_Spe_Pre.x)/ HalfT;
-	Pos_Data.SPE_Y = (Pos_Data.POS_Y - Pos_Spe_Pre.y)/ HalfT;;
-	Pos_Data.SPE_Z = (Pos_Data.POS_Z - Pos_Spe_Pre.z)/ HalfT;;
+	Pos_Data.SPE_Y = (Pos_Data.POS_Y - Pos_Spe_Pre.y)/ HalfT;
+	Pos_Data.SPE_Z = (Pos_Data.POS_Z - Pos_Spe_Pre.z)/ HalfT;
 	
 	Pos_Spe_Pre.x = Pos_Data.POS_X;
 	Pos_Spe_Pre.y = Pos_Data.POS_Y;

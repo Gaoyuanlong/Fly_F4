@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Browse\Pro.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Browse\Pro.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Thu Feb 23 19:32:38 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Fri Feb 24 19:17:37 2017
 <BR><P>
 <H3>Maximum Stack Usage =        360 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -839,6 +839,7 @@ Global Symbols
 
 <P><STRONG><a name="[157]"></a>GPIO_SetBits</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_gpio.o(i.GPIO_SetBits))
 <BR><BR>[Called By]<UL><LI><a href="#[25]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_Off(unsigned short)
+<LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Buzzer_On(unsigned short)
 </UL>
 
 <P><STRONG><a name="[4a]"></a>HardFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f4xx_it.o(i.HardFault_Handler))
@@ -1885,7 +1886,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[1d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;State_Updata(unsigned short)
 </UL>
 
-<P><STRONG><a name="[3e]"></a>Buzzer_On(unsigned short)</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, buzzer.o(i._Z9Buzzer_Ont))
+<P><STRONG><a name="[3e]"></a>Buzzer_On(unsigned short)</STRONG> (Thumb, 60 bytes, Stack size 16 bytes, buzzer.o(i._Z9Buzzer_Ont))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = Buzzer_On(unsigned short)
+</UL>
+<BR>[Calls]<UL><LI><a href="#[157]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
+</UL>
 <BR>[Address Reference Count : 1]<UL><LI> buzzer.o(.data)
 </UL>
 <P><STRONG><a name="[1a]"></a>Constrain(double, double, double)</STRONG> (Thumb, 92 bytes, Stack size 32 bytes, math_user.o(i._Z9Constrainddd))
