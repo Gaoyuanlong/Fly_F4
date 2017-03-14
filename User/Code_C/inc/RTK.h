@@ -3,25 +3,36 @@
 #include "USART.h"
 #include "Filter.h"
 
-#define RTK_GPS_SIZE 48
+#define RTK_GPS_SIZE 96
 #define GPS_HEAD_SIZE 3
 
-typedef struct RTK_GPS_
+
+typedef struct RTK_XYZ_HP_
 {
-	u8 Quality;
-	double Lat_M;
+	double PX;
+	double PY;
+	double PZ;
+	
+	double VX;
+	double VY;
+	double VZ;
+	
+	double Heading;
+	double Pitch;
+	
 	double Lon_M;
+	double Lat_M;
 	double Alt_M;
-	double TrackAngle;
-	double Speed_M;
-}RTK_GPS_;
+	u8 Quality;
+}RTK_XYZ_HP_;
 
 typedef struct RTK_OPS_
 {
 	BOOL (*Read)( u8* StrAdd);
 }RTK_OPS_;
 
-extern RTK_GPS_ RTK_GPS;
+extern RTK_XYZ_HP_ RTK_XYZ_HP;
+extern RTK_XYZ_HP_ RTK_XYZ_HP_Offset;
 extern RTK_OPS_ RTK_OPS;
 extern struct Vector RTK_GPS_Speed; 
 #endif

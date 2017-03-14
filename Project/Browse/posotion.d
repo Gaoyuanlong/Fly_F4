@@ -58,7 +58,6 @@
 .\browse\posotion.o: ..\User\Code_C\inc\Battery.h
 .\browse\posotion.o: ..\User\Code_C\inc\ADS1118.h
 .\browse\posotion.o: ..\User\Code_C\inc\Motor.h
-.\browse\posotion.o: ..\User\Code_C\inc\GPS.h
 .\browse\posotion.o: ..\User\Code_C\inc\NRF24L01.h
 .\browse\posotion.o: ..\User\Code_C\inc\NRF24L01_Register.h
 .\browse\posotion.o: ..\User\Code_C\inc\FlyControl.h
@@ -68,4 +67,7 @@
 .\browse\posotion.o: ..\User\Code_C\inc\Altitude.h
 .\browse\posotion.o: ..\User\Code_C\inc\Ultra.h
 .\browse\posotion.o: ..\User\Code_C\inc\RTK.h
+.\browse\posotion.o: ..\User\Code_C\inc\ANO_DT.h
+.\browse\posotion.o: ..\User\Code_C\inc\USART1.h
+.\browse\posotion.o: ..\User\Code_C\inc\ANO_DT.h
 .\browse\posotion.o: ..\User\Code_C\inc\Buzzer.h

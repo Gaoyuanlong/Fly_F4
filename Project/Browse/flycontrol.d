@@ -58,7 +58,6 @@
 .\browse\flycontrol.o: ..\User\Code_C\inc\Battery.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\ADS1118.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Motor.h
-.\browse\flycontrol.o: ..\User\Code_C\inc\GPS.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\NRF24L01.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\NRF24L01_Register.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\FlyControl.h
@@ -66,6 +65,9 @@
 .\browse\flycontrol.o: ..\User\Code_C\inc\Altitude.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Ultra.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\RTK.h
+.\browse\flycontrol.o: ..\User\Code_C\inc\ANO_DT.h
+.\browse\flycontrol.o: ..\User\Code_C\inc\USART1.h
+.\browse\flycontrol.o: ..\User\Code_C\inc\ANO_DT.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Position.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\MS5611_SPI.h
 .\browse\flycontrol.o: ..\User\Code_C\inc\Buzzer.h

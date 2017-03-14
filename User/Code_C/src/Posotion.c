@@ -32,7 +32,7 @@ float ACC_Fused_Spe;
 void Position_Init(void)
 {
 	MS5611_SPI.Init();
-	GPS.Init();
+	USART1_Cf.Init(115200);
 }
 
 void MS5611_Fuse_Updata(u16 Time,float ACC_Earth)
@@ -97,50 +97,39 @@ void ACC_Fuse_Updata(u16 Time,float ACC_Earth)
 
 #define Kp 1.0f
 #define Ki 0.0f
-Quaternion Pos_Q;
-void Updata_Pos_Quaternion(Vector RTK_GPS_Speed,Vector ACC,double DltaT)
+void Updata_Pos_Quaternion(RTK_XYZ_HP_ RTK_XYZ_HP,Vector ACC,double DltaT)
 {
-	float Norm;
 	double HalfT = DltaT / 2.0f;
-	double vx,vy,vz;
+	double RTKx,RTKy,RTKz;
 	double ex,ey,ez;
-	double gx,gy,gz;
+	double Px,Py,Pz;
 	double ax,ay,az;
 	static double exInt = 0, eyInt = 0, ezInt = 0;//定义姿态解算误差的积分
-	static Vector Pos_Spe_Pre;
 	Vector ACC_Earth;
 
 	/***************************************************
 	参数gx，gy，gz分别对应三个轴的位移速度，单位是米/秒（地理坐标系）
 　参数ax，ay，az分别对应三个轴的加速度原始数据（地理坐标系）
 	***************************************************/
-	ACC_Earth = Math.Body_To_Earth(ACC,Attitude.Angle->y,Attitude.Angle->x,RTK_GPS.TrackAngle);
+	ACC_Earth = Math.Body_To_Earth(ACC,Attitude.Angle->y,Attitude.Angle->x,RTK_XYZ_HP.Heading);
 	ax = ACC_Earth.x;
 	ay = ACC_Earth.y;
-	az = ACC_Earth.z;
-
-	gx = RTK_GPS_Speed.x;
-	gy = RTK_GPS_Speed.y;
-	gz = RTK_GPS_Speed.z;	
-	
-	//将加速度的原始数据，归一化，得到单位加速度
-	arm_sqrt_f32(ax * ax + ay * ay + az * az,&Norm);
-	if(Norm == 0) return;
-	ax = ax / Norm;
-	ay = ay / Norm;
-	az = az / Norm;
+	az = ACC_Earth.z - 1;//减掉重力矢量
 	
 	/**************************************************
 	把四元数换算成“方向余弦矩阵”中的第三列的三个元素。
 	根据余弦矩阵和欧拉角的定义，地理坐标系的重力向量，
 	转到机体坐标系，正好是这三个元素。所以这里的vx、vy、vz，
-	其实就是当前的机体坐标参照系上，换算出来的重力单位向量。
+	其实就是当前的机体坐标参照系上，换算出来的重力单位向量。 
 	(用表示机体姿态的四元数进行换算)
 	***************************************************/
-	vx = 2.0f * (Pos_Q.q2 * Pos_Q.q4 - Pos_Q.q1 * Pos_Q.q3);
-	vy = 2.0f * (Pos_Q.q1 * Pos_Q.q2 + Pos_Q.q3 * Pos_Q.q4);
-	vz = 1.0f - 2.0f * ( Pos_Q.q2 * Pos_Q.q2 + Pos_Q.q3 * Pos_Q.q3);//Q.w * Q.w + Q.z * Q.z;
+	Px = Pos_Data.POS_X;
+	Py = Pos_Data.POS_Y;
+	Pz = Pos_Data.POS_Z;
 	
+	RTKx = RTK_XYZ_HP.PX;
+	RTKy = RTK_XYZ_HP.PY;
+	RTKz = RTK_XYZ_HP.PZ;	
 	/***************************************************
 	向量间的误差，可以用向量积(也叫外积、叉乘)来表示，	ex、
 	ey、ez就是两个重力向量的叉积。这个叉积向量仍旧是位于机体
@@ -149,57 +138,36 @@ void Updata_Pos_Quaternion(Vector RTK_GPS_Speed,Vector ACC,double DltaT)
 	体直接积分，所以对陀螺的纠正量会直接体现在对机体坐标系的
 	纠正。
 	***************************************************/
-	ex = (ay * vz - az * vy);
-	ey = (az * vx - ax * vz);
-	ez = (ax * vy - ay * vx);
+	ex = (Py * RTKz - Pz * RTKy); 
+	ey = (Pz * RTKx - Px * RTKz);
+	ez = (Px * RTKy - Py * RTKx);
 	
 	/***************************************************
 	用叉乘误差来做PI修正陀螺零偏，通过调节Kp，Ki两个参数，可
 	以控制加速度计修正陀螺仪积分姿态的速度
 	***************************************************/
 	if(Ki > 0)
-	{
-		exInt = exInt + ex * Ki;
+	{ 
 		eyInt = eyInt + ey * Ki;
 		ezInt = ezInt + ez * Ki;
-		gx = gx + Kp * ex + exInt;
-		gy = gy + Kp * ey + eyInt;
-		gz = gz + Kp * ez + ezInt;
+		ax = ax + Kp * ex + exInt;
+		ay = ay + Kp * ey + eyInt;
+		az = az + Kp * ez + ezInt;
 	}
 	else
 	{
-		gx = gx + Kp * ex;
-		gy = gy + Kp * ey;
-		gz = gz + Kp * ez;   
+		ax = ax + Kp * ex;
+		ay = ay + Kp * ey;
+		az = az + Kp * ez;   
 	}
 	
-	//四元数微分方程 
-	Pos_Q.q1 += (-Pos_Q.q2 * gx - Pos_Q.q3 * gy - Pos_Q.q4 * gz) * HalfT;
-	Pos_Q.q2 += ( Pos_Q.q1 * gx + Pos_Q.q3 * gz - Pos_Q.q4 * gy) * HalfT;
-	Pos_Q.q3 += ( Pos_Q.q1 * gy - Pos_Q.q2 * gz + Pos_Q.q4 * gx) * HalfT;
-  Pos_Q.q4 += ( Pos_Q.q1 * gz + Pos_Q.q2 * gy - Pos_Q.q3 * gx) * HalfT;
-
-	//四元数单位化
-	arm_sqrt_f32(Pos_Q.q1 * Pos_Q.q1 + Pos_Q.q2 * Pos_Q.q2 + Pos_Q.q3 * Pos_Q.q3 + Pos_Q.q4 * Pos_Q.q4,&Norm);
+	Pos_Data.SPE_X += ax*DltaT;
+	Pos_Data.SPE_Y += ay*DltaT;
+	Pos_Data.SPE_Z += az*DltaT;	
 	
-	if(Norm == 0) return;
-	
-	Pos_Q.q1 = Pos_Q.q1 / Norm;
-	Pos_Q.q2 = Pos_Q.q2 / Norm;
-	Pos_Q.q3 = Pos_Q.q3 / Norm;
-	Pos_Q.q4 = Pos_Q.q4 / Norm;		
-	
-	Pos_Data.POS_X = Degrees(atan2f(2.0f*(Pos_Q.q1*Pos_Q.q2 + Pos_Q.q3*Pos_Q.q4),1 - 2.0f*(Pos_Q.q2*Pos_Q.q2 + Pos_Q.q3*Pos_Q.q3)));
-	Pos_Data.POS_Y = Degrees(Safe_Asin(2.0f*(Pos_Q.q1*Pos_Q.q3 - Pos_Q.q2*Pos_Q.q4)));
-	Pos_Data.POS_Z = Degrees(atan2f(2.0f*(Pos_Q.q2*Pos_Q.q3 - Pos_Q.q1*Pos_Q.q4),2.0f*(Pos_Q.q1*Pos_Q.q1 + Pos_Q.q2*Pos_Q.q2) - 1));
-	
-	Pos_Data.SPE_X = (Pos_Data.POS_X - Pos_Spe_Pre.x)/ HalfT;
-	Pos_Data.SPE_Y = (Pos_Data.POS_Y - Pos_Spe_Pre.y)/ HalfT;
-	Pos_Data.SPE_Z = (Pos_Data.POS_Z - Pos_Spe_Pre.z)/ HalfT;
-	
-	Pos_Spe_Pre.x = Pos_Data.POS_X;
-	Pos_Spe_Pre.y = Pos_Data.POS_Y;
-	Pos_Spe_Pre.z = Pos_Data.POS_Z;
+	Pos_Data.POS_X += Pos_Data.SPE_X*DltaT;
+	Pos_Data.POS_Y += Pos_Data.SPE_Y*DltaT;
+	Pos_Data.POS_Z += Pos_Data.SPE_Z*DltaT;
 }
 
 void Position_Updata(u16 Time)
@@ -212,7 +180,7 @@ void Position_Updata(u16 Time)
 	DltaT = (Time_Now - Time_Pre) * (double)1e-6;
 	Time_Pre = Time_Now;
 	
-	Updata_Pos_Quaternion(RTK_GPS_Speed,MPU6050.Data->ACC_ADC,DltaT);	
+	Updata_Pos_Quaternion(RTK_XYZ_HP,MPU6050.Data->ACC_ADC,DltaT);	
 }
 
 

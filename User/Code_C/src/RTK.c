@@ -1,58 +1,73 @@
 #include "RTK.h"
 
-Filter_MidValue GPS_Lat_Filter;
+BOOL RTK_Read( u8 *StrAdd);
+
+Filter_MidValue GPS_PX_Filter;
+Filter_MidValue GPS_PY_Filter;
+Filter_MidValue GPS_PZ_Filter;
+Filter_MidValue GPS_VX_Filter;
+Filter_MidValue GPS_VY_Filter;
+Filter_MidValue GPS_VZ_Filter;
+Filter_MidValue GPS_HE_Filter;
+Filter_MidValue GPS_PI_Filter;
 Filter_MidValue GPS_Lon_Filter;
+Filter_MidValue GPS_Lat_Filter;
 Filter_MidValue GPS_Alt_Filter;
-Filter_MidValue GPS_TrackAngle_Filter;
-Filter_MidValue GPS_Speed_Filter;
 
-BOOL RTK_Updata( u8 *StrAdd);
-
-RTK_GPS_ RTK_GPS;
-struct Vector RTK_GPS_Speed; 
+RTK_XYZ_HP_ RTK_XYZ_HP;
+RTK_XYZ_HP_ RTK_XYZ_HP_Offset;
 
 RTK_OPS_ RTK_OPS=
 {
-	 RTK_Updata
+	 RTK_Read
 };
 
-BOOL RTK_Updata( u8 *StrAdd)
+BOOL RTK_Read( u8 *StrAdd)
 {
-	RTK_GPS_ RTK_GPS_Temp;
+	static u8 OffsetGetFlag = 0;
 	u8 Data_Str[RTK_GPS_SIZE] = {0}; 
-	static uint64_t Time_Old = 0;
-	uint64_t Time_Enter = 0;
-	
-	Time_Enter= SystemTime.Now_US();
-	
-	for(int i = 0;i < RTK_GPS_SIZE;i++)
-	{
+	u32 Time_Now = 0;
+	static u32 Time_Old = 0;
+	#define DELAY_OFFSET_GET 2000
+	//不能直接赋值 问题未找到原因
+	for(u16 i = 0;i < RTK_GPS_SIZE;i++)
+	{  
 		Data_Str[i] = StrAdd[i];
 	}
-	RTK_GPS_Temp = *(RTK_GPS_*)Data_Str;
 	
-	RTK_GPS_Temp.Lat_M = GPS_Lat_Filter.MidValue(RTK_GPS_Temp.Lat_M);
-	RTK_GPS_Temp.Lon_M = GPS_Lon_Filter.MidValue(RTK_GPS_Temp.Lon_M);
-	RTK_GPS_Temp.Alt_M = GPS_Alt_Filter.MidValue(RTK_GPS_Temp.Alt_M); 
-	RTK_GPS_Temp.TrackAngle = GPS_TrackAngle_Filter.MidValue(RTK_GPS_Temp.TrackAngle);
-	RTK_GPS_Temp.Speed_M = GPS_Speed_Filter.MidValue(RTK_GPS_Temp.Speed_M);
+	RTK_XYZ_HP = *(RTK_XYZ_HP_*)Data_Str;
 	
-	RTK_GPS_Speed.x = (RTK_GPS_Temp.Lon_M - RTK_GPS.Lon_M)/(Time_Enter - Time_Old) * (double)1e6;
-	RTK_GPS_Speed.y = (RTK_GPS_Temp.Lat_M - RTK_GPS.Lat_M)/(Time_Enter - Time_Old) * (double)1e6;
-	RTK_GPS_Speed.z = (RTK_GPS_Temp.Alt_M - RTK_GPS.Alt_M)/(Time_Enter - Time_Old) * (double)1e6;
+	RTK_XYZ_HP.PX = GPS_PX_Filter.MidValue(RTK_XYZ_HP.PX);
+	RTK_XYZ_HP.PY = GPS_PY_Filter.MidValue(RTK_XYZ_HP.PY);
+	RTK_XYZ_HP.PZ = GPS_PZ_Filter.MidValue(RTK_XYZ_HP.PZ); 
+	RTK_XYZ_HP.VX = GPS_VX_Filter.MidValue(RTK_XYZ_HP.VX);
+	RTK_XYZ_HP.VY = GPS_VY_Filter.MidValue(RTK_XYZ_HP.VY);
+	RTK_XYZ_HP.VZ = GPS_VZ_Filter.MidValue(RTK_XYZ_HP.VZ);
+	RTK_XYZ_HP.Heading = GPS_HE_Filter.MidValue(RTK_XYZ_HP.Heading);
+	RTK_XYZ_HP.Pitch = GPS_PI_Filter.MidValue(RTK_XYZ_HP.Pitch);
+	RTK_XYZ_HP.Lon_M = GPS_Lon_Filter.MidValue(RTK_XYZ_HP.Lon_M);
+	RTK_XYZ_HP.Lat_M = GPS_Lat_Filter.MidValue(RTK_XYZ_HP.Lat_M);
+	RTK_XYZ_HP.Alt_M = GPS_Alt_Filter.MidValue(RTK_XYZ_HP.Alt_M);	
+	RTK_XYZ_HP.Quality = RTK_XYZ_HP.Quality;
 	
-	/*
-	*加入速度跳变判断
-	*/
-	
-	RTK_GPS.Quality = RTK_GPS_Temp.Quality;
-	RTK_GPS.Lat_M = RTK_GPS_Temp.Lat_M;
-	RTK_GPS.Lon_M = RTK_GPS_Temp.Lon_M;
-	RTK_GPS.Alt_M = RTK_GPS_Temp.Alt_M;
-	RTK_GPS.TrackAngle = RTK_GPS_Temp.TrackAngle;
-	RTK_GPS.Speed_M = RTK_GPS_Temp.Speed_M;
-	
-	Time_Old = Time_Enter;
+	if(0 == OffsetGetFlag && 4 == RTK_XYZ_HP.Quality)
+	{
+		Time_Now = SystemTime.Now_MS();
+		if(Time_Old == 0)
+			Time_Old = Time_Now;
+		if(DELAY_OFFSET_GET < (Time_Now - Time_Old) && 4 == RTK_XYZ_HP.Quality)
+		{
+			OffsetGetFlag = 1;
+			RTK_XYZ_HP_Offset.PX = RTK_XYZ_HP.PX;
+			RTK_XYZ_HP_Offset.PY = RTK_XYZ_HP.PY;
+			RTK_XYZ_HP_Offset.PZ = RTK_XYZ_HP.PZ;
+			RTK_XYZ_HP_Offset.Lon_M = RTK_XYZ_HP.Lon_M;
+			RTK_XYZ_HP_Offset.Lat_M = RTK_XYZ_HP.Lat_M;
+			RTK_XYZ_HP_Offset.Alt_M = RTK_XYZ_HP.Alt_M;
+			RTK_XYZ_HP_Offset.Pitch =  -90;//-90~90转成0~180显示
+			OffsetGetFlag = 1;
+		}
+	}
 	return True;
 }
 

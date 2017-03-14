@@ -3,6 +3,7 @@
 Target_ TG_50HZ(Scheduler.Loop_50Hz,20000);
 Target_ TG_200HZ(Scheduler.Loop_200Hz,5000);
 Target_ TG_500HZ(Scheduler.Loop_500Hz,2000);
+u8 KeyTest = 0;
 int main(void)
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);  

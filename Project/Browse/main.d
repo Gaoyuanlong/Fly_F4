@@ -58,7 +58,6 @@
 .\browse\main.o: ..\User\Code_C\inc\MS5611.h
 .\browse\main.o: ..\User\Code_C\inc\Battery.h
 .\browse\main.o: ..\User\Code_C\inc\ADS1118.h
-.\browse\main.o: ..\User\Code_C\inc\GPS.h
 .\browse\main.o: ..\User\Code_C\inc\NRF24L01.h
 .\browse\main.o: ..\User\Code_C\inc\NRF24L01_Register.h
 .\browse\main.o: ..\User\Code_C\inc\FlyControl.h
@@ -70,6 +69,9 @@
 .\browse\main.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\main.o: ..\User\Code_C\inc\Altitude.h
 .\browse\main.o: ..\User\Code_C\inc\RTK.h
+.\browse\main.o: ..\User\Code_C\inc\ANO_DT.h
+.\browse\main.o: ..\User\Code_C\inc\USART1.h
+.\browse\main.o: ..\User\Code_C\inc\ANO_DT.h
 .\browse\main.o: ..\User\Code_C\inc\Scheduler.h
 .\browse\main.o: ..\User\Code_C\inc\Board.h
 .\browse\main.o: ..\User\Code_C\inc\SysState.h

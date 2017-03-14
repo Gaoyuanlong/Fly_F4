@@ -8,7 +8,6 @@
 #include "MS5611.h"
 #include "Battery.h"
 #include "Motor.h"
-#include "GPS.h"
 #include "NRF24L01.h"
 #include "HMC5883.h"
 #include "FlyControl.h"
@@ -16,7 +15,7 @@
 #include "Altitude.h"
 #include "Ultra.h"
 #include "RTK.h"
-
+#include "ANO_DT.h"
 #define UNLOCK  	0X0001
 #define LOST    	0X0002
 #define SYS_ERROR 0X0004

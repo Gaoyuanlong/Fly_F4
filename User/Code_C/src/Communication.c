@@ -617,10 +617,43 @@ BOOL Send_PID_Para_PC(u8 Group)
 	return True;
 }
 
+void Send_Location_PC(void)
+{
+	u16 Temp1 = 0;
+	u8 Cnt = 1;
+
+	if(NRF24L01.RequsetAckBuf(False) == False) return;	
+	
+	NRF24L01.Data->ACK_BUF[Cnt++] = 0XAA;
+	NRF24L01.Data->ACK_BUF[Cnt++] = 0XAA;
+	NRF24L01.Data->ACK_BUF[Cnt++] = 0X32;
+	NRF24L01.Data->ACK_BUF[Cnt++] = 0;
+	
+	Temp1 = (int)(Position.Data->POS_X*100)%10000;	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp1);	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp1);	
+	
+	Temp1 = (int)(Position.Data->POS_Y*100)%10000;	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp1);	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp1);	
+	
+	Temp1 = (int)(Position.Data->POS_Z*100)%10000;	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp1);	
+	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp1);		
+	
+	NRF24L01.Data->ACK_BUF[4] = Cnt - 5;
+	
+	u8 Sum = 0;
+	for(u8 i = 1;i < Cnt; i++)
+		Sum += NRF24L01.Data->ACK_BUF[i];
+	
+	NRF24L01.Data->ACK_BUF[Cnt++] = Sum;
+	NRF24L01.Data->ACK_BUF[0] = Cnt - 1; 
+	NRF24L01.SendData();
+}
 
 //上传数据卡顿或出错
 // EEROR_LQ
-
 BOOL Send_UserData_PC(void)
 {
 	u8 Cnt = 1;
@@ -637,15 +670,15 @@ BOOL Send_UserData_PC(void)
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);
 	
-	Temp = User_Data.Data2;
+	Temp = (int)(User_Data.Data2*100)%10000;
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);
 	
-	Temp = User_Data.Data3;
+	Temp = (int)(User_Data.Data3*100)%10000;
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);
 
-	Temp = User_Data.Data4;
+	Temp = (int)(User_Data.Data4*100)%10000;
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);
 
@@ -653,7 +686,7 @@ BOOL Send_UserData_PC(void)
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);
 	
-	Temp = User_Data.Data6;
+	Temp = (int)(User_Data.Data6*100)%10000;
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE1(Temp);
 	NRF24L01.Data->ACK_BUF[Cnt++] = BYTE0(Temp);	
 
@@ -710,7 +743,7 @@ void Send_Data_PC(void)
 			Send_RC_PC();
 			break;
 		case 3:
-			Send_Motor_PC();
+			Send_Location_PC();
 			break;
 		case 4:
 			Send_UserData_PC();
@@ -879,15 +912,7 @@ void Receive_Data_MCU2( const u8 *StrHeadAdd)
 		}
 		USART.Free_RXBUF();	
 	}
-	
-	User_Data.Data1 = RTK_GPS.Quality;
-	User_Data.Data2 = RTK_GPS.Lat_M;
-	User_Data.Data3 = RTK_GPS.Lon_M ;
-	User_Data.Data4 = RTK_GPS.Alt_M;
-	User_Data.Data5 = RTK_GPS.TrackAngle;
-	User_Data.Data6 = RTK_GPS.Speed_M;
 }
-
 
 void Data_Analysis_MCU2(void)
 {
@@ -951,10 +976,13 @@ BOOL Communicate(void)
 {
 //	Send_Data_MCU2();
 #ifdef DEBUG
-	Send_Data_PC();
+	//Send_Data_PC();
+	//ANO_DT_Data_Exchange();
+	USART1_Cf.USART1_Send_Datas();
 	//Data_Analysis_PC();
 #endif	
 //	Data_Analysis_MCU2();
 	Receive_Data_MCU2(USART.Data->RX_BUF);
 	return True;
 }
+

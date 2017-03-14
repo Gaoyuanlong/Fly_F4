@@ -519,9 +519,9 @@
               <FilePath>..\User\Code_C\src\ADS1118.c</FilePath>
             </File>
             <File>
-              <FileName>GPS.c</FileName>
+              <FileName>USART1.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Code_C\src\GPS.c</FilePath>
+              <FilePath>..\User\Code_C\src\USART1.c</FilePath>
             </File>
             <File>
               <FileName>HMC5883.c</FileName>
@@ -552,6 +552,11 @@
               <FileName>RTK.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Code_C\src\RTK.c</FilePath>
+            </File>
+            <File>
+              <FileName>ANO_DT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Code_C\src\ANO_DT.c</FilePath>
             </File>
           </Files>
         </Group>

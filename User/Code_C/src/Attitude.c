@@ -3,7 +3,7 @@
 #define Ki 0.0f
 
 Filter_2nd ATT_Filter(0.1883633f,0,0,-1.023694f,0.2120577f);
-Quaternion Q;//,Qz;
+Quaternion Q,Qz;
 u8 IsCalulate = True;
 struct Vector Angle;
 struct Vector Rate;
@@ -29,7 +29,7 @@ struct Attitude_ Attitude =
 	Updata_Eular,
 };
 
-void Updata_Quaternion(Vector GYR,Vector ACC,Vector MAG,double DltaT)
+void Updata_Quaternion(Vector GYR,Vector ACC,double HeadAngle,double DltaT)
 {
 	float Norm;
 	double HalfT = DltaT / 2.0f;
@@ -37,6 +37,8 @@ void Updata_Quaternion(Vector GYR,Vector ACC,Vector MAG,double DltaT)
 	double ex,ey,ez;
 	double gx,gy,gz;
 	double ax,ay,az;
+	double HeadAngleX,HeadAngleY;
+	double HeadAngle180;
 	static double exInt = 0, eyInt = 0, ezInt = 0;//定义姿态解算误差的积分
 
 
@@ -126,47 +128,70 @@ void Updata_Quaternion(Vector GYR,Vector ACC,Vector MAG,double DltaT)
 	Angle.x = Degrees(atan2f(2.0f*(Q.q1*Q.q2 + Q.q3*Q.q4),1 - 2.0f*(Q.q2*Q.q2 + Q.q3*Q.q3)));
 	Angle.y = Degrees(Safe_Asin(2.0f*(Q.q1*Q.q3 - Q.q2*Q.q4)));
 	Angle.z = Degrees(atan2f(2.0f*(Q.q2*Q.q3 - Q.q1*Q.q4),2.0f*(Q.q1*Q.q1 + Q.q2*Q.q2) - 1));
+	
+	
+///////////////////////////////////////////////////////////////////////////////////////////	
 	//坐标轴不重合，且存在反向
 	//利用地磁计算偏航角速度
 	//为避免Z轴的修正对俯仰角及翻滚角的影响，单独修正Z轴
 	//地磁计数据在飞机倾斜时需要根据角度进行补偿
 	//绕y轴运动->翻滚
+	HeadAngleX = 1;
+	HeadAngleY = tanf(HeadAngle);	
+
+  if(HeadAngle > 90 && HeadAngle < 180)
+	{
+		HeadAngleX = -HeadAngleX;
+	}
+	else if(HeadAngle < 270)
+	{
+		HeadAngleX = -HeadAngleX;
+		HeadAngleY = -HeadAngleY;
+	}
+	else if(HeadAngle <= 360)
+	{
+		HeadAngleY = -HeadAngleY;
+	}
 	
-//	if((MAG.x != 0) || (MAG.y != 0)) 
-//	{
-//		//板载地磁
-//		float MagX,MagY,AngleZ;
-//		float COS_P = arm_cos_f32(Radians(-Angle.y));
-//		float COS_R = arm_cos_f32(Radians(Angle.x));
-//		float SIN_P = arm_sin_f32(Radians(-Angle.y));
-//		float SIN_R = arm_sin_f32(Radians(Angle.x));
-//		
-//		MagX = HMC5883.Data->MAG_ADC.x * COS_P + HMC5883.Data->MAG_ADC.y * SIN_R * SIN_P - HMC5883.Data->MAG_ADC.z * COS_R * SIN_P;
-//		MagY = HMC5883.Data->MAG_ADC.y * COS_R - HMC5883.Data->MAG_ADC.z * SIN_R;
-//		
-//		AngleZ = Degrees(atan2f(MagX,MagY));
-//		
-//		if(abs(To_180_degrees(AngleZ - Angle.z)) < 1.0f)
-//			gz -= 0.1f * Kp * Radians(To_180_degrees(AngleZ - Angle.z));
-//		else
-//			gz -= Kp * Radians(To_180_degrees(AngleZ - Angle.z));	
-//	}
-//	//四元数微分方程 
-//	Qz.q1 += (-Qz.q2 * gx - Qz.q3 * gy - Qz.q4 * gz) * HalfT;
-//	Qz.q2 += ( Qz.q1 * gx + Qz.q3 * gz - Qz.q4 * gy) * HalfT;
-//	Qz.q3 += ( Qz.q1 * gy - Qz.q2 * gz + Qz.q4 * gx) * HalfT;
-//	Qz.q4 += ( Qz.q1 * gz + Qz.q2 * gy - Qz.q3 * gx) * HalfT;
+	if((HeadAngleX != 0) || (HeadAngleY != 0)) 
+	{
+		//板载地磁
+		float MagX,MagY,AngleZ;
+		float COS_P = arm_cos_f32(Radians(-Angle.y));
+		float COS_R = arm_cos_f32(Radians(Angle.x));
+		float SIN_P = arm_sin_f32(Radians(-Angle.y));
+		float SIN_R = arm_sin_f32(Radians(Angle.x));
+		
+		//atanf
+		MagX = HMC5883.Data->MAG_ADC.x * COS_P + HMC5883.Data->MAG_ADC.y * SIN_R * SIN_P - HMC5883.Data->MAG_ADC.z * COS_R * SIN_P;
+		MagY = HMC5883.Data->MAG_ADC.y * COS_R - HMC5883.Data->MAG_ADC.z * SIN_R;
+		
+		AngleZ = Degrees(atan2f(MagX,MagY));
+		
+		HeadAngle180 = To_180_degrees(HeadAngle);
+		
+		if(abs(To_180_degrees(HeadAngle180 - Angle.z)) < 1.0f)
+			gz -= 0.1f * Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));
+		else
+			gz -= Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));	
+	}
+	//四元数微分方程 
+	Qz.q1 += (-Qz.q2 * gx - Qz.q3 * gy - Qz.q4 * gz) * HalfT;
+	Qz.q2 += ( Qz.q1 * gx + Qz.q3 * gz - Qz.q4 * gy) * HalfT;
+	Qz.q3 += ( Qz.q1 * gy - Qz.q2 * gz + Qz.q4 * gx) * HalfT;
+	Qz.q4 += ( Qz.q1 * gz + Qz.q2 * gy - Qz.q3 * gx) * HalfT;
 
-//	//四元数单位化
-//	arm_sqrt_f32(Qz.q1 * Qz.q1 + Qz.q2 * Qz.q2 + Qz.q3 * Qz.q3 + Qz.q4 * Qz.q4,&Norm);
-//	
-//	if(Norm == 0) return;
-//	
-//	Qz.q1 = Qz.q1 / Norm;
-//	Qz.q2 = Qz.q2 / Norm;
-//	Qz.q3 = Qz.q3 / Norm;
-//	Qz.q4 = Qz.q4 / Norm;
-
+	//四元数单位化
+	arm_sqrt_f32(Qz.q1 * Qz.q1 + Qz.q2 * Qz.q2 + Qz.q3 * Qz.q3 + Qz.q4 * Qz.q4,&Norm);
+	
+	if(Norm == 0) return;
+	
+	Qz.q1 = Qz.q1 / Norm;
+	Qz.q2 = Qz.q2 / Norm;
+	Qz.q3 = Qz.q3 / Norm;
+	Qz.q4 = Qz.q4 / Norm;
+	
+	Angle.z = Degrees(atan2f(2.0f*(Qz.q2*Qz.q3 - Qz.q1*Qz.q4),2.0f*(Qz.q1*Qz.q1 + Qz.q2*Qz.q2) - 1));
 }
 
 /***************************************************
@@ -184,7 +209,7 @@ void Updata_Eular(void)
 	DltaT = (Time_Now - Time_Pre) * (double)1e-6;
 	Time_Pre = Time_Now;
 	
-	Updata_Quaternion(MPU6050.Data->GYR_ADC,MPU6050.Data->ACC_ADC,HMC5883.Data->MAG_ADC,DltaT);	
+	Updata_Quaternion(MPU6050.Data->GYR_ADC,MPU6050.Data->ACC_ADC,RTK_XYZ_HP.Heading,DltaT);	
 
 }
 

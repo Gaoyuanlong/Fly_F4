@@ -56,7 +56,6 @@
 .\browse\communication.o: ..\User\Code_C\inc\Battery.h
 .\browse\communication.o: ..\User\Code_C\inc\ADS1118.h
 .\browse\communication.o: ..\User\Code_C\inc\Motor.h
-.\browse\communication.o: ..\User\Code_C\inc\GPS.h
 .\browse\communication.o: ..\User\Code_C\inc\NRF24L01.h
 .\browse\communication.o: ..\User\Code_C\inc\NRF24L01_Register.h
 .\browse\communication.o: ..\User\Code_C\inc\FlyControl.h
@@ -68,3 +67,6 @@
 .\browse\communication.o: ..\User\Code_C\inc\Buzzer.h
 .\browse\communication.o: ..\User\Code_C\inc\Altitude.h
 .\browse\communication.o: ..\User\Code_C\inc\RTK.h
+.\browse\communication.o: ..\User\Code_C\inc\ANO_DT.h
+.\browse\communication.o: ..\User\Code_C\inc\USART1.h
+.\browse\communication.o: ..\User\Code_C\inc\ANO_DT.h
