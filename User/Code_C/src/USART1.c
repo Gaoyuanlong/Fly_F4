@@ -86,6 +86,7 @@ void USART1_IRQHandler(void)
 
 }
 
+u32 SendData[8] = {0};
 void USART1_Send_Datas(void)
 {
 	static unsigned short int send_data[3][8] = { { 0 }, { 0 }, { 0 } };
@@ -94,26 +95,26 @@ void USART1_Send_Datas(void)
 	{
 		case '1':
 			{
-			send_data[0][0] = (unsigned short int)((RTK_XYZ_HP.PX - RTK_XYZ_HP_Offset.PX)*100);
-			send_data[0][1] = (unsigned short int)((RTK_XYZ_HP.PY - RTK_XYZ_HP_Offset.PY)*100);
-			send_data[0][2] = (unsigned short int)((RTK_XYZ_HP.PZ - RTK_XYZ_HP_Offset.PZ)*100);
+			send_data[0][0] = (unsigned short int)((RTK_XYZ_HP_Offset.Lon_M)*100);
+			send_data[0][1] = (unsigned short int)(0);
+			send_data[0][2] = (unsigned short int)(0);
 			send_data[0][3] = (unsigned short int)(0);
 			send_data[0][4] = (unsigned short int)(0);
 			send_data[0][5] = (unsigned short int)(0);
 			send_data[0][6] = (unsigned short int)(0);
 			send_data[0][7] = (unsigned short int)(0);
 
-			send_data[1][0] = (unsigned short int)(RTK_XYZ_HP.VX*100);
-			send_data[1][1] = (unsigned short int)(RTK_XYZ_HP.VY*100);
-			send_data[1][2] = (unsigned short int)(RTK_XYZ_HP.VZ*100);
+			send_data[1][0] = (unsigned short int)((RTK_XYZ_HP_Offset.Lat_M)*100);
+			send_data[1][1] = (unsigned short int)(0);
+			send_data[1][2] = (unsigned short int)(0);
 			send_data[1][3] = (unsigned short int)(0);
 			send_data[1][4] = (unsigned short int)(0);
 			send_data[1][5] = (unsigned short int)(0);
 			send_data[1][6] = (unsigned short int)(0);
 			send_data[1][7] = (unsigned short int)(0);
 
-			send_data[2][0] = (unsigned short int)(RTK_XYZ_HP.Heading);
-			send_data[2][1] = (unsigned short int)(RTK_XYZ_HP.Pitch - RTK_XYZ_HP_Offset.Pitch);
+			send_data[2][0] = (unsigned short int)((RTK_XYZ_HP_Offset.Alt_M)*100);
+			send_data[2][1] = (unsigned short int)(0);
 			send_data[2][2] = (unsigned short int)(0);
 			send_data[2][3] = (unsigned short int)(0);
 			send_data[2][4] = (unsigned short int)(0);
@@ -123,28 +124,28 @@ void USART1_Send_Datas(void)
 			}break;
 		case '2':
 			{
-			send_data[0][0] = (unsigned short int)((RTK_XYZ_HP.Lon_M - RTK_XYZ_HP_Offset.Lon_M)*100);
-			send_data[0][1] = (unsigned short int)((RTK_XYZ_HP.Lat_M - RTK_XYZ_HP_Offset.Lat_M)*100);
-			send_data[0][2] = (unsigned short int)((RTK_XYZ_HP.Alt_M - RTK_XYZ_HP_Offset.Alt_M)*100);
+			send_data[0][0] = (unsigned short int)(Position.Data->POS_X*100);
+			send_data[0][1] = (unsigned short int)((RTK_XYZ_HP.Lon_M)*100 + 10);
+			send_data[0][2] = (unsigned short int)(0);
 			send_data[0][3] = (unsigned short int)(0);
 			send_data[0][4] = (unsigned short int)(0);
 			send_data[0][5] = (unsigned short int)(0);
 			send_data[0][6] = (unsigned short int)(0);
 			send_data[0][7] = (unsigned short int)(0);
 
-			send_data[1][0] = (unsigned short int)((RTK_XYZ_HP.PX - RTK_XYZ_HP_Offset.PX)*100);
-			send_data[1][1] = (unsigned short int)((RTK_XYZ_HP.PY - RTK_XYZ_HP_Offset.PY)*100);
-			send_data[1][2] = (unsigned short int)((RTK_XYZ_HP.PZ - RTK_XYZ_HP_Offset.PZ)*100);
+			send_data[1][0] = (unsigned short int)(Position.Data->POS_Y*100);
+			send_data[1][1] = (unsigned short int)((RTK_XYZ_HP.Lat_M)*100 + 10);
+			send_data[1][2] = (unsigned short int)(0);
 			send_data[1][3] = (unsigned short int)(0);
 			send_data[1][4] = (unsigned short int)(0);
 			send_data[1][5] = (unsigned short int)(0);
 			send_data[1][6] = (unsigned short int)(0);
 			send_data[1][7] = (unsigned short int)(0); 
 
-			send_data[2][0] = (unsigned short int)(0);
-			send_data[2][1] = (unsigned short int)(0);
-			send_data[2][2] = (unsigned short int)(Attitude.Angle->z);
-			send_data[2][3] = (unsigned short int)(Attitude.Angle->y);
+			send_data[2][0] = (unsigned short int)(Position.Data->POS_Z*100);
+			send_data[2][1] = (unsigned short int)((RTK_XYZ_HP.Alt_M)*100 + 10);
+			send_data[2][2] = (unsigned short int)(0);
+			send_data[2][3] = (unsigned short int)(0);
 			send_data[2][4] = (unsigned short int)(0);
 			send_data[2][5] = (unsigned short int)(0);
 			send_data[2][6] = (unsigned short int)(0);
@@ -152,16 +153,16 @@ void USART1_Send_Datas(void)
 			}break;
 		case '3':
 			{
-			send_data[0][0] = (unsigned short int)(10);
-			send_data[0][1] = (unsigned short int)(20);
-			send_data[0][2] = (unsigned short int)(30);
-			send_data[0][3] = (unsigned short int)(40);
-			send_data[0][4] = (unsigned short int)(50);
-			send_data[0][5] = (unsigned short int)(60);
-			send_data[0][6] = (unsigned short int)(70);
-			send_data[0][7] = (unsigned short int)(80);
+			send_data[0][0] = (unsigned short int)(Attitude.Angle->x + 90);
+			send_data[0][1] = (unsigned short int)(0);
+			send_data[0][2] = (unsigned short int)(0);
+			send_data[0][3] = (unsigned short int)(0);
+			send_data[0][4] = (unsigned short int)(0);
+			send_data[0][5] = (unsigned short int)(0);
+			send_data[0][6] = (unsigned short int)(0);
+			send_data[0][7] = (unsigned short int)(0);
 
-			send_data[1][0] = (unsigned short int)(0);
+			send_data[1][0] = (unsigned short int)(Attitude.Angle->y + 90);
 			send_data[1][1] = (unsigned short int)(0);
 			send_data[1][2] = (unsigned short int)(0);
 			send_data[1][3] = (unsigned short int)(0);
@@ -170,7 +171,65 @@ void USART1_Send_Datas(void)
 			send_data[1][6] = (unsigned short int)(0);
 			send_data[1][7] = (unsigned short int)(0);
 
-			send_data[2][0] = (unsigned short int)(0);
+			send_data[2][0] = (unsigned short int)(Attitude.Angle->z + 180);
+			send_data[2][1] = (unsigned short int)(RTK_XYZ_HP.Heading + 180 + 10);
+			send_data[2][2] = (unsigned short int)(0);
+			send_data[2][3] = (unsigned short int)(0);
+			send_data[2][4] = (unsigned short int)(0);
+			send_data[2][5] = (unsigned short int)(0);
+			send_data[2][6] = (unsigned short int)(0);
+			send_data[2][7] = (unsigned short int)(0);
+			}break;
+		case '4':
+			{
+			send_data[0][0] = (unsigned short int)(Position.Data->SPE_X*100);
+			send_data[0][1] = (unsigned short int)(0);
+			send_data[0][2] = (unsigned short int)(0);
+			send_data[0][3] = (unsigned short int)(0);
+			send_data[0][4] = (unsigned short int)(0);
+			send_data[0][5] = (unsigned short int)(0);
+			send_data[0][6] = (unsigned short int)(0);
+			send_data[0][7] = (unsigned short int)(0);
+
+			send_data[1][0] = (unsigned short int)(Position.Data->SPE_Y*100);
+			send_data[1][1] = (unsigned short int)(0);
+			send_data[1][2] = (unsigned short int)(0);
+			send_data[1][3] = (unsigned short int)(0);
+			send_data[1][4] = (unsigned short int)(0);
+			send_data[1][5] = (unsigned short int)(0);
+			send_data[1][6] = (unsigned short int)(0);
+			send_data[1][7] = (unsigned short int)(0);
+
+			send_data[2][0] = (unsigned short int)(Position.Data->SPE_Z*100);
+			send_data[2][1] = (unsigned short int)(0);
+			send_data[2][2] = (unsigned short int)(0);
+			send_data[2][3] = (unsigned short int)(0);
+			send_data[2][4] = (unsigned short int)(0);
+			send_data[2][5] = (unsigned short int)(0);
+			send_data[2][6] = (unsigned short int)(0);
+			send_data[2][7] = (unsigned short int)(0);
+			}break;
+		case '5':
+			{
+			send_data[0][0] = (unsigned short int)(FlyControl.Para->POS_Inner_PID_z.Output);
+			send_data[0][1] = (unsigned short int)(0);
+			send_data[0][2] = (unsigned short int)(0);
+			send_data[0][3] = (unsigned short int)(0);
+			send_data[0][4] = (unsigned short int)(0);
+			send_data[0][5] = (unsigned short int)(0);
+			send_data[0][6] = (unsigned short int)(0);
+			send_data[0][7] = (unsigned short int)(0);
+
+			send_data[1][0] = (unsigned short int)(Position.Data->POS_Z*100);
+			send_data[1][1] = (unsigned short int)(0);
+			send_data[1][2] = (unsigned short int)(0);
+			send_data[1][3] = (unsigned short int)(0);
+			send_data[1][4] = (unsigned short int)(0);
+			send_data[1][5] = (unsigned short int)(0);
+			send_data[1][6] = (unsigned short int)(0);
+			send_data[1][7] = (unsigned short int)(0);
+
+			send_data[2][0] = (unsigned short int)(FlyControl.Para->POS_Outer_PID_z.Setpoint*100);
 			send_data[2][1] = (unsigned short int)(0);
 			send_data[2][2] = (unsigned short int)(0);
 			send_data[2][3] = (unsigned short int)(0);

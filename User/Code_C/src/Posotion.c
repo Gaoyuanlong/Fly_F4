@@ -95,92 +95,102 @@ void ACC_Fuse_Updata(u16 Time,float ACC_Earth)
 
 }
 
-#define Kp 1.0f
-#define Ki 0.0f
-void Updata_Pos_Quaternion(RTK_XYZ_HP_ RTK_XYZ_HP,Vector ACC,double DltaT)
+#define posKp 0.01f
+#define posKi 0.0f
+#define spKp 0.01f
+#define spKi 0.0f
+#define Earth_G 4096
+void Updata_Pos_Quaternion(RTK_XYZ_HP_ RTK_XYZ_HP,Vector ACC,u16 DltaT)
 {
-	double HalfT = DltaT / 2.0f;
-	double RTKx,RTKy,RTKz;
-	double ex,ey,ez;
-	double Px,Py,Pz;
-	double ax,ay,az;
-	static double exInt = 0, eyInt = 0, ezInt = 0;//定义姿态解算误差的积分
+	float DltaT_S = DltaT/1000.0f;
+	float RTKx,RTKy,RTKz;
+	float POSex,POSey,POSez;
+	float SPex,SPey,SPez;
+	float Px,Py,Pz;
+	float ax,ay,az;
+	static float exInt = 0, eyInt = 0, ezInt = 0;//定义姿态解算误差的积分
 	Vector ACC_Earth;
+	Vector SPE_Temp(0,0,0);
+	static Vector POS_Temp(0,0,0);
 
 	/***************************************************
-	参数gx，gy，gz分别对应三个轴的位移速度，单位是米/秒（地理坐标系）
+　状态就绪
+	***************************************************/	
+	float TimeNow = SystemTime.Now_MS();
+	if(TimeNow > 10000)
+	{
+		Position.IsReady = True;
+	}
+	else
+	{
+		Position.IsReady = False;
+	}
+	/***************************************************
 　参数ax，ay，az分别对应三个轴的加速度原始数据（地理坐标系）
 	***************************************************/
-	ACC_Earth = Math.Body_To_Earth(ACC,Attitude.Angle->y,Attitude.Angle->x,RTK_XYZ_HP.Heading);
+	ACC_Earth = Math.Body_To_Earth(ACC,Attitude.Angle->y,Attitude.Angle->x,Attitude.Angle->z);
 	ax = ACC_Earth.x;
 	ay = ACC_Earth.y;
-	az = ACC_Earth.z - 1;//减掉重力矢量
+	az = ACC_Earth.z - Earth_G;//减掉重力分量
 	
+	ax = ax/Earth_G*9.8f;
+	ay = ay/Earth_G*9.8f;
+	az = az/Earth_G*9.8f;
+
+//	extern u32 SendData[8];
+//		SendData[0] = ACC_Earth.x;
+//		SendData[1] = ACC_Earth.y;
+//		SendData[2] = ACC_Earth.z;
 	/**************************************************
-	把四元数换算成“方向余弦矩阵”中的第三列的三个元素。
-	根据余弦矩阵和欧拉角的定义，地理坐标系的重力向量，
-	转到机体坐标系，正好是这三个元素。所以这里的vx、vy、vz，
-	其实就是当前的机体坐标参照系上，换算出来的重力单位向量。 
-	(用表示机体姿态的四元数进行换算)
+	位置取值
 	***************************************************/
 	Px = Pos_Data.POS_X;
 	Py = Pos_Data.POS_Y;
 	Pz = Pos_Data.POS_Z;
 	
-	RTKx = RTK_XYZ_HP.PX;
-	RTKy = RTK_XYZ_HP.PY;
-	RTKz = RTK_XYZ_HP.PZ;	
-	/***************************************************
-	向量间的误差，可以用向量积(也叫外积、叉乘)来表示，	ex、
-	ey、ez就是两个重力向量的叉积。这个叉积向量仍旧是位于机体
-	坐标系上的，而陀螺积分误差也是在机体坐标系，而且叉积的大
-	小与陀螺积分误差成正比，正好拿来纠正陀螺。由于陀螺是对机
-	体直接积分，所以对陀螺的纠正量会直接体现在对机体坐标系的
-	纠正。
+	RTKx = RTK_XYZ_HP.Lon_M;
+	RTKy = RTK_XYZ_HP.Lat_M;
+	RTKz = RTK_XYZ_HP.Alt_M;	
+	/**************************************************
+	推算速度，速度误差
 	***************************************************/
-	ex = (Py * RTKz - Pz * RTKy); 
-	ey = (Pz * RTKx - Px * RTKz);
-	ez = (Px * RTKy - Py * RTKx);
+	SPE_Temp.x = (RTKx - POS_Temp.x)/(DltaT_S);
+	SPE_Temp.y = (RTKy - POS_Temp.y)/(DltaT_S);
+	SPE_Temp.z = (RTKz - POS_Temp.z)/(DltaT_S);
+	
+	POS_Temp.x = RTKx;//存历史值
+	POS_Temp.y = RTKy;
+	POS_Temp.z = RTKz;
+	
+	SPex = SPE_Temp.x - Pos_Data.SPE_X;
+	SPey = SPE_Temp.y - Pos_Data.SPE_Y;
+	SPez = SPE_Temp.z - Pos_Data.SPE_Z;
+	/**************************************************
+	位置误差
+	***************************************************/
+	POSex = (RTKx - Px );
+	POSey = (RTKy - Py );
+	POSez = (RTKz - Pz );
 	
 	/***************************************************
-	用叉乘误差来做PI修正陀螺零偏，通过调节Kp，Ki两个参数，可
-	以控制加速度计修正陀螺仪积分姿态的速度
+	修正速度，修正位置
 	***************************************************/
-	if(Ki > 0)
-	{ 
-		eyInt = eyInt + ey * Ki;
-		ezInt = ezInt + ez * Ki;
-		ax = ax + Kp * ex + exInt;
-		ay = ay + Kp * ey + eyInt;
-		az = az + Kp * ez + ezInt;
-	}
-	else
-	{
-		ax = ax + Kp * ex;
-		ay = ay + Kp * ey;
-		az = az + Kp * ez;   
-	}
+	Pos_Data.SPE_X += ax * DltaT_S + spKp * SPex;//速度反馈 修正：加速度，得到一次修正速度
+	Pos_Data.SPE_Y += ay * DltaT_S + spKp * SPey;
+	Pos_Data.SPE_Z += az * DltaT_S + spKp * SPez;
+
+//	Pos_Data.SPE_X = Pos_Data.SPE_X + posKp * POSex;//位置反馈 修正：速度，得到二次修正速度
+//	Pos_Data.SPE_Y = Pos_Data.SPE_Y + posKp * POSey;
+//	Pos_Data.SPE_Z = Pos_Data.SPE_Z + posKp * POSez;
 	
-	Pos_Data.SPE_X += ax*DltaT;
-	Pos_Data.SPE_Y += ay*DltaT;
-	Pos_Data.SPE_Z += az*DltaT;	
-	
-	Pos_Data.POS_X += Pos_Data.SPE_X*DltaT;
-	Pos_Data.POS_Y += Pos_Data.SPE_Y*DltaT;
-	Pos_Data.POS_Z += Pos_Data.SPE_Z*DltaT;
+	Pos_Data.POS_X += Pos_Data.SPE_X * DltaT_S + posKp * POSex;
+	Pos_Data.POS_Y += Pos_Data.SPE_Y * DltaT_S + posKp * POSey;
+	Pos_Data.POS_Z += Pos_Data.SPE_Z * DltaT_S + posKp * POSez;
 }
 
 void Position_Updata(u16 Time)
 {
-	double DltaT;
-	uint64_t Time_Now = 0;
-	static uint64_t Time_Pre = 0;
-	
-	Time_Now = SystemTime.Now_US();
-	DltaT = (Time_Now - Time_Pre) * (double)1e-6;
-	Time_Pre = Time_Now;
-	
-	Updata_Pos_Quaternion(RTK_XYZ_HP,MPU6050.Data->ACC_ADC,DltaT);	
+	Updata_Pos_Quaternion(RTK_XYZ_HP,MPU6050.Data->ACC_ADC,Time);	
 }
 
 

@@ -1,6 +1,7 @@
 #include "SysState.h"
 
 #define TIME_JUDGE_LOST  1000
+#define  TIME_JUDGE_MODE 1000
 #define TIME_BEFORE_LOCK 3000
 #define TIME_TO_UNLOCK   3000
 
@@ -20,7 +21,7 @@ void RC_State(u16 Time)
 {
 	static int64_t LostTime = 0;
 	
-	if((SBUS.SW_POS_Judge(RC_AUX5) == Up) & (SBUS.SW_POS_Judge(RC_AUX6) == Up))
+	if((SBUS.SW_POS_Judge(RC_AUX5) == Up) && (SBUS.SW_POS_Judge(RC_AUX6) == Up))
 	{
 		LostTime += Time;
 		if(LostTime > TIME_JUDGE_LOST)
@@ -74,6 +75,40 @@ void Controller_State(u16 Time)
 
 	static u16 LockTime = 0;
 	static u16 UnlockTime = 0;
+	static int64_t ModeTime = 0;
+	
+	//飞行MODE设置
+	if(FlyControl.Para->IsLock == True)
+	{
+			if((SBUS.SW_POS_Judge(RC_AUX1) == Up) && (SBUS.SW_POS_Judge(RC_AUX2) == Up))
+			{
+				ModeTime += Time;
+				if(ModeTime > TIME_JUDGE_MODE)
+				{
+					FlyControl.Para->Mode = ATT;
+					ModeTime = TIME_JUDGE_MODE;
+				}
+			}
+			else if((SBUS.SW_POS_Judge(RC_AUX1) == Mid) && (SBUS.SW_POS_Judge(RC_AUX2) == Mid))
+			{
+				ModeTime += Time;
+				if(ModeTime > TIME_JUDGE_MODE)
+				{
+					FlyControl.Para->Mode = ALT;
+					ModeTime = TIME_JUDGE_MODE;
+				}
+			}
+			else if((SBUS.SW_POS_Judge(RC_AUX1) == Down) && (SBUS.SW_POS_Judge(RC_AUX2) == Down))
+			{
+				ModeTime += Time;
+				if(ModeTime > TIME_JUDGE_MODE)
+				{
+					FlyControl.Para->Mode = POS;
+					ModeTime = TIME_JUDGE_MODE;
+				}
+			}
+	}
+	
 	//解锁判定	 上锁判定
 	if(FlyControl.Para->IsLock == True)
 	{

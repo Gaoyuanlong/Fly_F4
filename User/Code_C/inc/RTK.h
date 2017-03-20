@@ -4,7 +4,7 @@
 #include "Filter.h"
 
 #define RTK_GPS_SIZE 96
-#define GPS_HEAD_SIZE 3
+#define GPS_HEAD_SIZE 4
 
 
 typedef struct RTK_XYZ_HP_

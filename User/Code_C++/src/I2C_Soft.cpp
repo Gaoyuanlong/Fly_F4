@@ -96,7 +96,7 @@ int I2C_Soft_:: WaitAck(void) 	 //返回为:=1有ACK,=0无ACK
 	if(SDA_Read)
 	{
       SCL_L;
-			Delay();
+			Delay(); 
       return 0;
 	}
 	SCL_L;

@@ -900,17 +900,18 @@ void Send_Data_MCU2(void)
 	}
 	
 }
+
 void Receive_Data_MCU2( const u8 *StrHeadAdd)
 {
 	 const u8 *P = StrHeadAdd;
 	
 	if(USART.Receive()== True)
 	{
-		if(P[0] == 'G' && P[1] == 'P' && P[2] == 'S')
+		if(P[0] == 'G' && P[1] == 'P' && P[2] == 'S' && P[3] == 'A')
 		{
-			RTK_OPS.Read((u8*)&P[3]);
+			RTK_OPS.Read((u8*)&P[4]);
 		}
-		USART.Free_RXBUF();	
+		USART.Free_RXBUF();
 	}
 }
 

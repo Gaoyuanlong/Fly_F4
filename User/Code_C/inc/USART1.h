@@ -4,6 +4,7 @@
 #include "Time.h"
 #include "Common.h"
 #include "ANO_DT.h"
+#include "Position.h"
 
 extern struct USART1_Cf_
 {

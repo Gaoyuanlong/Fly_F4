@@ -65,7 +65,7 @@ struct Control_Para_ Control_Para =
 	0,0,0,
 	True,
 	False,
-	ALT
+	ATT
 };
 #else
 
@@ -170,7 +170,7 @@ void ATT_Outer_Loop(u32 Time)
 	// 反馈
 	Control_Para.ATT_Outer_PID_x.Feedback = Radians(Attitude.Angle->x);
 	Control_Para.ATT_Outer_PID_y.Feedback = Radians(Attitude.Angle->y);
-	Control_Para.ATT_Outer_PID_z.Feedback = Attitude.Rate->z;
+	Control_Para.ATT_Outer_PID_z.Feedback = Attitude.Rate->z;//角度反馈控制角度（前提是准确z角）Radians(RTK_XYZ_HP.Heading)，角速度反馈控制角速度 Attitude.Rate->z
 	// PID计算
 	Control_Para.ATT_Outer_PID_x.Cal_PID_POS(Time);
 	Control_Para.ATT_Outer_PID_y.Cal_PID_POS(Time);

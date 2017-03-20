@@ -57,7 +57,7 @@ Vector Body_To_Earth(Vector Body,float Pitch,float Roll,float Yaw)
 //	Earth.y =                                 COS_Phi   * Body.y -             SIN_Phi * Body.z;
 //	Earth.z = -SIN_Theta * Body.x + SIN_Phi * COS_Theta * Body.y + COS_Phi * COS_Theta * Body.z;
 	return Earth;
-};
+}
 
 float To_180_degrees(float x)
 {

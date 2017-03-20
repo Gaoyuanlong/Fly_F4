@@ -1,13 +1,14 @@
 #include "Attitude.h"
 #define Kp 1.0f
 #define Ki 0.0f
+#define Kzp 1.0f
 
 Filter_2nd ATT_Filter(0.1883633f,0,0,-1.023694f,0.2120577f);
 Quaternion Q,Qz;
 u8 IsCalulate = True;
 struct Vector Angle;
 struct Vector Rate;
-
+Filter_Balance FUSE_Head_GPS_ATT(1,0,0);
 /*
 	坐标系关系说明：
 	机体坐标系：以MPU6050芯片的坐标系一致  -> PWM捕获接口方向是机头方向
@@ -37,10 +38,10 @@ void Updata_Quaternion(Vector GYR,Vector ACC,double HeadAngle,double DltaT)
 	double ex,ey,ez;
 	double gx,gy,gz;
 	double ax,ay,az;
-	double HeadAngleX,HeadAngleY;
-	double HeadAngle180;
 	static double exInt = 0, eyInt = 0, ezInt = 0;//定义姿态解算误差的积分
 
+	double ez_gps = 0;
+	
 
 	/***************************************************
 	参数gx，gy，gz分别对应三个轴的角速度，单位是弧度/秒
@@ -88,7 +89,12 @@ void Updata_Quaternion(Vector GYR,Vector ACC,double HeadAngle,double DltaT)
 	ex = (ay * vz - az * vy);
 	ey = (az * vx - ax * vz);
 	ez = (ax * vy - ay * vx);
+
+	//融合GPS偏航角
+	ez_gps = Angle.z  - HeadAngle;
 	
+	if(ez_gps > 180	)ez_gps = ez_gps - 360;
+	if(ez_gps < -180)ez_gps = 360 - ez_gps;
 	/***************************************************
 	用叉乘误差来做PI修正陀螺零偏，通过调节Kp，Ki两个参数，可
 	以控制加速度计修正陀螺仪积分姿态的速度
@@ -106,7 +112,7 @@ void Updata_Quaternion(Vector GYR,Vector ACC,double HeadAngle,double DltaT)
 	{
 		gx = gx + Kp * ex;
 		gy = gy + Kp * ey;
-		gz = gz + Kp * ez;   
+		gz = gz + Kp * ez + Kzp*ez_gps;   
 	}
 	
 	//四元数微分方程 
@@ -136,62 +142,77 @@ void Updata_Quaternion(Vector GYR,Vector ACC,double HeadAngle,double DltaT)
 	//为避免Z轴的修正对俯仰角及翻滚角的影响，单独修正Z轴
 	//地磁计数据在飞机倾斜时需要根据角度进行补偿
 	//绕y轴运动->翻滚
-	HeadAngleX = 1;
-	HeadAngleY = tanf(HeadAngle);	
+	
+	//角度直接跟随，避免温漂
+	
+//extern u32 SendData[8];
+//extern u8 KeyTest;	
+//	if(KeyTest == '3')
+//		Angle.z = FUSE_Head_GPS_ATT.BalanceFilter(Angle.z,100,DltaT);
+//	SendData[0]  = HeadAngle;
+//	SendData[1]  =  Angle.z;
 
-  if(HeadAngle > 90 && HeadAngle < 180)
-	{
-		HeadAngleX = -HeadAngleX;
-	}
-	else if(HeadAngle < 270)
-	{
-		HeadAngleX = -HeadAngleX;
-		HeadAngleY = -HeadAngleY;
-	}
-	else if(HeadAngle <= 360)
-	{
-		HeadAngleY = -HeadAngleY;
-	}
-	
-	if((HeadAngleX != 0) || (HeadAngleY != 0)) 
-	{
-		//板载地磁
-		float MagX,MagY,AngleZ;
-		float COS_P = arm_cos_f32(Radians(-Angle.y));
-		float COS_R = arm_cos_f32(Radians(Angle.x));
-		float SIN_P = arm_sin_f32(Radians(-Angle.y));
-		float SIN_R = arm_sin_f32(Radians(Angle.x));
-		
-		//atanf
-		MagX = HMC5883.Data->MAG_ADC.x * COS_P + HMC5883.Data->MAG_ADC.y * SIN_R * SIN_P - HMC5883.Data->MAG_ADC.z * COS_R * SIN_P;
-		MagY = HMC5883.Data->MAG_ADC.y * COS_R - HMC5883.Data->MAG_ADC.z * SIN_R;
-		
-		AngleZ = Degrees(atan2f(MagX,MagY));
-		
-		HeadAngle180 = To_180_degrees(HeadAngle);
-		
-		if(abs(To_180_degrees(HeadAngle180 - Angle.z)) < 1.0f)
-			gz -= 0.1f * Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));
-		else
-			gz -= Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));	
-	}
-	//四元数微分方程 
-	Qz.q1 += (-Qz.q2 * gx - Qz.q3 * gy - Qz.q4 * gz) * HalfT;
-	Qz.q2 += ( Qz.q1 * gx + Qz.q3 * gz - Qz.q4 * gy) * HalfT;
-	Qz.q3 += ( Qz.q1 * gy - Qz.q2 * gz + Qz.q4 * gx) * HalfT;
-	Qz.q4 += ( Qz.q1 * gz + Qz.q2 * gy - Qz.q3 * gx) * HalfT;
+//	HeadAngleX = 1;
+//	HeadAngleY = tanf(HeadAngle);	
 
-	//四元数单位化
-	arm_sqrt_f32(Qz.q1 * Qz.q1 + Qz.q2 * Qz.q2 + Qz.q3 * Qz.q3 + Qz.q4 * Qz.q4,&Norm);
-	
-	if(Norm == 0) return;
-	
-	Qz.q1 = Qz.q1 / Norm;
-	Qz.q2 = Qz.q2 / Norm;
-	Qz.q3 = Qz.q3 / Norm;
-	Qz.q4 = Qz.q4 / Norm;
-	
-	Angle.z = Degrees(atan2f(2.0f*(Qz.q2*Qz.q3 - Qz.q1*Qz.q4),2.0f*(Qz.q1*Qz.q1 + Qz.q2*Qz.q2) - 1));
+//  if(HeadAngle > 90 && HeadAngle < 180)
+//	{
+//		HeadAngleX = -HeadAngleX;
+//	}
+//	else if(HeadAngle < 270)
+//	{
+//		HeadAngleX = -HeadAngleX;
+//		HeadAngleY = -HeadAngleY;
+//	}
+//	else if(HeadAngle <= 360)
+//	{
+//		HeadAngleY = -HeadAngleY;
+//	}
+//	
+//	if((HeadAngleX != 0) || (HeadAngleY != 0)) 
+//	{
+//		//板载地磁
+//		float MagX,MagY,AngleZ;
+//		float COS_P = arm_cos_f32(Radians(-Angle.y));
+//		float COS_R = arm_cos_f32(Radians(Angle.x));
+//		float SIN_P = arm_sin_f32(Radians(-Angle.y));
+//		float SIN_R = arm_sin_f32(Radians(Angle.x));
+//		
+//		//atanf
+//		MagX = HMC5883.Data->MAG_ADC.x * COS_P + HMC5883.Data->MAG_ADC.y * SIN_R * SIN_P - HMC5883.Data->MAG_ADC.z * COS_R * SIN_P;
+//		MagY = HMC5883.Data->MAG_ADC.y * COS_R - HMC5883.Data->MAG_ADC.z * SIN_R;
+//		
+//		AngleZ = Degrees(atan2f(MagX,MagY));
+//		
+//		HeadAngle180 = To_180_degrees(HeadAngle);
+//		
+//		if(abs(To_180_degrees(HeadAngle180 - Angle.z)) < 1.0f)
+//			gz -= 0.1f * Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));
+//		else
+//			gz -= Kp * Radians(To_180_degrees(HeadAngle180 - Angle.z));	
+//	}
+
+//Z轴GPS补偿
+//四元数微分方程 
+
+//	gz = gz + Kzp*ez_gps;  
+//	
+//	Qz.q1 += (-Qz.q2 * gx - Qz.q3 * gy - Qz.q4 * gz) * HalfT;
+//	Qz.q2 += ( Qz.q1 * gx + Qz.q3 * gz - Qz.q4 * gy) * HalfT;
+//	Qz.q3 += ( Qz.q1 * gy - Qz.q2 * gz + Qz.q4 * gx) * HalfT;
+//	Qz.q4 += ( Qz.q1 * gz + Qz.q2 * gy - Qz.q3 * gx) * HalfT;
+
+//	//四元数单位化
+//	arm_sqrt_f32(Qz.q1 * Qz.q1 + Qz.q2 * Qz.q2 + Qz.q3 * Qz.q3 + Qz.q4 * Qz.q4,&Norm);
+//	
+//	if(Norm == 0) return;
+//	
+//	Qz.q1 = Qz.q1 / Norm;
+//	Qz.q2 = Qz.q2 / Norm;
+//	Qz.q3 = Qz.q3 / Norm;
+//	Qz.q4 = Qz.q4 / Norm;
+//	
+//	Angle.z = Degrees(atan2f(2.0f*(Qz.q2*Qz.q3 - Qz.q1*Qz.q4),2.0f*(Qz.q1*Qz.q1 + Qz.q2*Qz.q2) - 1));
 }
 
 /***************************************************

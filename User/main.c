@@ -9,7 +9,7 @@ int main(void)
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);  
 	SystemTime.Init();
 	Led.Init();
-	USART.Init(9600);
+	USART.Init(38400);
 	Power.Init();
 	SBUS.Init();
 	MPU6050.Init();
